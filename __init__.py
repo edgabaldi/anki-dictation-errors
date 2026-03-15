@@ -1,5 +1,6 @@
 import os
 import datetime
+from anki.utils import strip_html
 from aqt import mw, gui_hooks
 from aqt.qt import QAction, QUrl, QDesktopServices, QMessageBox
 
@@ -18,7 +19,9 @@ def log_typing_error(reviewer, card, ease):
     try:
         # Pegamos os valores que confirmamos no diagnóstico
         user_typed = getattr(reviewer, "typedAnswer", "").strip()
-        correct_ans = getattr(reviewer, "typeCorrect", "").strip()
+        raw_correct = getattr(reviewer, "typeCorrect", "").strip()
+
+        correct_ans = strip_html(raw_correct)
 
         # Verifica se houve erro de digitação (segurança extra)
         if user_typed != correct_ans and correct_ans and user_typed:
