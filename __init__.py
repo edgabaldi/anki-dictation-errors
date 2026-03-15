@@ -7,6 +7,12 @@ from aqt.qt import QAction, QUrl, QDesktopServices, QMessageBox
 # Path where the error log will be saved
 LOG_FILE = os.path.join(os.path.dirname(__file__), "anki_dictation_errors.txt")
 
+def get_log_path():
+    date_str = datetime.datetime.now().strftime("%Y%m%d")
+    filename = f"{date_str}.txt"
+    # Salva na pasta do addon
+    return os.path.join(os.path.dirname(__file__), filename)
+
 def log_typing_error(reviewer, card, ease):
     """
     Agora usamos o hook 'reviewer_did_answer_card' para saber qual nota 
@@ -26,6 +32,7 @@ def log_typing_error(reviewer, card, ease):
         # Verifica se houve erro de digitação (segurança extra)
         if user_typed != correct_ans and correct_ans and user_typed:
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            log_file = get_log_path()
             
             log_entry = (
                 f"--- {timestamp} (FAILED CARD) ---\n"
@@ -34,7 +41,7 @@ def log_typing_error(reviewer, card, ease):
                 f"Note:    {card.note().model()['name']}\n\n"
             )
 
-            with open(LOG_FILE, "a", encoding="utf-8") as f:
+            with open(log_file, "a", encoding="utf-8") as f:
                 f.write(log_entry)
                 
     except Exception as e:
@@ -45,8 +52,9 @@ gui_hooks.reviewer_did_answer_card.append(log_typing_error)
 
 # Menu UI
 def open_error_log():
-    if os.path.exists(LOG_FILE):
-        QDesktopServices.openUrl(QUrl.fromLocalFile(LOG_FILE))
+    log_file = get_log_path()
+    if os.path.exists(log_file):
+        QDesktopServices.openUrl(QUrl.fromLocalFile(log_file))
     else:
         msg = QMessageBox(mw)
         msg.setText("No failed errors recorded yet!")
